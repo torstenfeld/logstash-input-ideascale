@@ -3,11 +3,10 @@ require 'spec/inputs/ideascale_spec'
 require 'logstash/inputs/base'
 require 'logstash/namespace'
 require 'stud/interval'
+require 'net/http'
 require 'socket' # for Socket.gethostname
 
-# Generate a repeating message.
-#
-# This plugin is intented only as an example.
+# Collects ideas for a specific community from IdeaScale via RestAPI
 
 class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   config_name 'ideascale'
@@ -17,6 +16,15 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
 
   # The message string to use in the event.
   config :message, :validate => :string, :default => 'Hello World!'
+
+  # the url of the API endpoint
+  config :url, :validate => :url, :required => 'true'
+
+  # the community id to get the data from
+  config :communityId, :validate => :string, :required => 'true'
+
+  # api token which is used for authentication
+  config :apitoken, :validate => :string, :required => 'true'
 
   # Set how frequently messages should be sent. The default, `3600`, means new items are get every hour.
   config :interval, :validate => :number, :default => 3600
