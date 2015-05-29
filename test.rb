@@ -24,9 +24,21 @@ class IdeaScale
     uri = URI(@url)
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
-    path = uri.path.empty? ? '/' : uri.path
+    puts uri.path
+    path = uri.path
 
-    body = http.get(path, header).body
+    # exit 123
+
+    response = http.request_get(path + '/0/1', header)
+    # TODO: add check for 'pager_total_count' exists
+    max_items = response['pager_total_count']
+    puts max_items
+
+    # TODO: add logic for max items per request
+    # TODO: add multi-threading for faster requests
+    response = http.request_get(path + '/0/' + max_items.to_s, header)
+
+    body = response.body
     JSON.parse(body)
   end
 end
@@ -34,6 +46,7 @@ end
 is = IdeaScale.new
 ideas = is.get_ideas
 
-ideas.each { |idea| puts idea['id'] }
+# ideas.each { |idea| puts idea['id'] }
+puts ideas.size
 
 
