@@ -26,6 +26,9 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   # api token which is used for authentication
   config :apitoken, :validate => :string, :required => 'true'
 
+  # max number of items fetched per request
+  config :requestsize, :validate => :integer, :default => 0
+
   # Set how frequently messages should be sent. The default, `3600`, means new items are get every hour.
   config :interval, :validate => :number, :default => 3600
 
