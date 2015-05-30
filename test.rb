@@ -25,7 +25,7 @@ class IdeaScale
     puts @campaigns.inspect
     # get_ideas
     nil
-  end
+  end # def run
 
   private
   def get_campaigns
@@ -42,17 +42,19 @@ class IdeaScale
     body = response.body
     result = JSON.parse(body)
 
-    campaigns_new = Hash.new
 
-    # create a new hash with renamed keys
+    # create a new array with hashes of renamed keys
+    campaigns_new = []
     result.each { |campaign|
+      campaign_new = Hash.new
       campaign.each { |key, value|
-        campaigns_new['cam_' + key.to_s] = value
+        campaign_new['cam_' + key.to_s] = value
       }
+      campaigns_new << campaign_new
     }
 
     @campaigns = campaigns_new
-  end
+  end # get_campaigns
 
   private
   def get_ideas
@@ -60,6 +62,7 @@ class IdeaScale
         'api_token' => @token
     }
     uri = URI(@baseurl + '/ideas')
+    # TODO: make ssl optional (create config param in ideascale.rb as well)
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
     puts uri.path
@@ -73,15 +76,15 @@ class IdeaScale
 
     # TODO: add logic for max items per request
     # TODO: add multi-threading for faster requests
-    response = http.request_get(uri.path + '/0/' + 25.to_s, header)
+    response = http.request_get(uri.path + '/0/' + 1.to_s, header)
     # response = http.request_get(uri.path + '/0/' + max_items.to_s, header)
 
     body = response.body
     result = JSON.parse(body)
     @ideas = result
     result
-  end
-end
+  end # def get_ideas
+end # class IdeaScale
 
 is = IdeaScale.new
 is.run
