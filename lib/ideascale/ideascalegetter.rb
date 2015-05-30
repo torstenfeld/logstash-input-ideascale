@@ -7,7 +7,7 @@ require 'json'
 require 'pp'
 
 
-class IdeaScale
+class IdeaScaleGetter
   def initialize
     get_config
   end

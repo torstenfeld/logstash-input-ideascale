@@ -2,6 +2,7 @@
 require 'spec/inputs/ideascale_spec'
 require 'logstash/inputs/base'
 require 'logstash/namespace'
+require 'lib/ideascale/ideascalegetter'
 require 'stud/interval'
 # noinspection RubyResolve
 require 'net/http'
@@ -15,17 +16,11 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   # If undefined, Logstash will complain, even if codec is unused.
   default :codec, 'plain'
 
-  # The message string to use in the event.
-  config :message, :validate => :string, :default => 'Hello World!'
-
   # the url of the API endpoint
   config :baseurl, :validate => :baseurl, :required => 'true'
 
   # types of feedbacks to be fetched ['ideas', 'comments', 'votes']
   config :fbtypes, :validate => :hash_or_array, :default => ['ideas']
-
-  # the community id to get the data from
-  config :communityId, :validate => :string, :required => 'true'
 
   # api token which is used for authentication
   config :apitoken, :validate => :string, :required => 'true'
@@ -43,9 +38,17 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
 
   def run(queue)
     Stud.interval(@interval) do
-      event = LogStash::Event.new('message' => @message, 'host' => @host)
-      decorate(event)
-      queue << event
+      is = IdeaScaleGetter.new
+      is.run
+      ideas = is.ideas
+      ideas.each { |idea|
+        event = LogStash::Event.new(idea)
+        decorate(event)
+        queue << event
+      }
+      # event = LogStash::Event.new('message' => @message, 'host' => @host)
+      # decorate(event)
+      # queue << event
     end # loop
   end # def run
 
