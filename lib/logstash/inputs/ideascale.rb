@@ -3,6 +3,7 @@ require 'spec/inputs/ideascale_spec'
 require 'logstash/inputs/base'
 require 'logstash/namespace'
 require 'stud/interval'
+# noinspection RubyResolve
 require 'net/http'
 require 'socket' # for Socket.gethostname
 
@@ -18,7 +19,10 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   config :message, :validate => :string, :default => 'Hello World!'
 
   # the url of the API endpoint
-  config :url, :validate => :url, :required => 'true'
+  config :baseurl, :validate => :baseurl, :required => 'true'
+
+  # types of feedbacks to be fetched ['ideas', 'comments', 'votes']
+  config :fbtypes, :validate => :hash_or_array, :default => ['ideas']
 
   # the community id to get the data from
   config :communityId, :validate => :string, :required => 'true'
