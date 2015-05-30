@@ -4,6 +4,7 @@ require 'net/http'
 require 'yaml'
 # noinspection RubyResolve
 require 'json'
+require 'pp'
 
 
 class IdeaScale
@@ -22,8 +23,9 @@ class IdeaScale
   public
   def run
     get_campaigns
-    puts @campaigns.inspect
-    # get_ideas
+    # puts @campaigns.inspect
+    get_ideas
+    puts JSON.pretty_generate(@ideas)
     nil
   end # def run
 
@@ -41,7 +43,6 @@ class IdeaScale
 
     body = response.body
     result = JSON.parse(body)
-
 
     # create a new array with hashes of renamed keys
     campaigns_new = []
@@ -76,13 +77,37 @@ class IdeaScale
 
     # TODO: add logic for max items per request
     # TODO: add multi-threading for faster requests
-    response = http.request_get(uri.path + '/0/' + 1.to_s, header)
+    response = http.request_get(uri.path + '/0/' + 2.to_s, header)
     # response = http.request_get(uri.path + '/0/' + max_items.to_s, header)
 
     body = response.body
     result = JSON.parse(body)
-    @ideas = result
-    result
+
+    # create a new array with hashes of renamed keys
+    ideas_new = []
+    result.each { |idea|
+      idea_new = Hash.new
+      idea.each { |key, value|
+        if key == 'authorInfo'
+          # flatten the author info
+          value.each { |a_k, a_v|
+            idea_new['author_' + a_k.to_s] = a_v
+          }
+        elsif key == 'locationInfo'
+          # extract just the ip from the location info to use geolocation detection of logstash
+          idea_new['ip'] = value['ip']
+        else
+          idea_new['idea_' + key.to_s] = value
+        end
+      }
+
+      # add all information of matching campaign to idea
+      campaign = @campaigns.find { |h| h['cam_id'] == idea_new['idea_campaignId'] }
+      idea_new = idea_new.merge(campaign)
+      ideas_new << idea_new
+    }
+
+    @ideas = ideas_new
   end # def get_ideas
 end # class IdeaScale
 
