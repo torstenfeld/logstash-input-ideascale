@@ -1,8 +1,9 @@
 # encoding: utf-8
-require 'spec/inputs/ideascale_spec'
+# require File.absolute_path(File.join(File.dirname(__FILE__), '../../../spec/inputs/ideascale_spec'))
 require 'logstash/inputs/base'
 require 'logstash/namespace'
-require 'lib/ideascale/ideascalegetter'
+# require File.absolute_path('../../ideascale/ideascalegetter')
+require File.absolute_path(File.join(File.dirname(__FILE__), '../../ideascale/ideascalegetter'))
 require 'stud/interval'
 # noinspection RubyResolve
 require 'net/http'
@@ -17,16 +18,16 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   default :codec, 'plain'
 
   # the url of the API endpoint
-  config :baseurl, :validate => :baseurl, :required => 'true'
+  config :baseurl, :validate => :string, :required => true
 
   # types of feedbacks to be fetched ['ideas', 'comments', 'votes']
-  config :fbtypes, :validate => :hash_or_array, :default => ['ideas']
+  config :fbtypes, :validate => :array, :default => ['ideas']
 
   # api token which is used for authentication
-  config :apitoken, :validate => :string, :required => 'true'
+  config :apitoken, :validate => :string, :required => true
 
   # max number of items fetched per request
-  config :requestsize, :validate => :integer, :default => 0
+  config :requestsize, :validate => :number, :default => 0
 
   # Set how frequently messages should be sent. The default, `3600`, means new items are get every hour.
   config :interval, :validate => :number, :default => 3600
@@ -36,11 +37,12 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
     @host = Socket.gethostname
   end # def register
 
+  public
   def run(queue)
     Stud.interval(@interval) do
-      is = IdeaScaleGetter.new
+      is = IdeaScaleGetter.new(@baseurl, @apitoken)
       is.run
-      ideas = is.ideas
+      ideas = is.instance_variable_get(:@ideas)
       ideas.each { |idea|
         event = LogStash::Event.new(idea)
         decorate(event)

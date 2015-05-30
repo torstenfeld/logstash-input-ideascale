@@ -8,8 +8,10 @@ require 'pp'
 
 
 class IdeaScaleGetter
-  def initialize
-    get_config
+  def initialize(baseurl, token)
+    @baseurl = baseurl
+    @token = token
+    # get_config
   end
 
   private
@@ -110,7 +112,4 @@ class IdeaScaleGetter
     @ideas = ideas_new
   end # def get_ideas
 end # class IdeaScale
-
-is = IdeaScale.new
-is.run
 
