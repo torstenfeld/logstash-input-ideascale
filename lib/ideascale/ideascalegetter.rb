@@ -4,10 +4,12 @@ require 'net/http'
 require 'yaml'
 # noinspection RubyResolve
 require 'json'
-require 'pp'
 
 
 class IdeaScaleGetter
+  attr_reader :campaigns
+  attr_reader :ideas
+  
   def initialize(baseurl, token)
     @baseurl = baseurl
     @token = token
@@ -24,22 +26,21 @@ class IdeaScaleGetter
 
   public
   def run
-    get_campaigns
-    # puts @campaigns.inspect
-    get_ideas
-    puts JSON.pretty_generate(@ideas)
+    fetch_campaigns
+    fetch_ideas
+    # puts JSON.pretty_generate(@ideas)
     nil
   end # def run
 
   private
-  def get_campaigns
+  def fetch_campaigns
     header = {
         'api_token' => @token
     }
     uri = URI(@baseurl + '/campaigns')
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
-    puts uri
+    # puts uri
 
     response = http.request_get(uri.path, header)
 
@@ -60,7 +61,7 @@ class IdeaScaleGetter
   end # get_campaigns
 
   private
-  def get_ideas
+  def fetch_ideas
     header = {
         'api_token' => @token
     }
@@ -68,19 +69,19 @@ class IdeaScaleGetter
     # TODO: make ssl optional (create config param in ideascale.rb as well)
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
-    puts uri.path
+    # puts uri.path
 
     # exit 123
 
     response = http.request_get(uri.path + '/0/1', header)
     # TODO: add check for 'pager_total_count' exists
     max_items = response['pager_total_count']
-    puts max_items
+    # puts max_items
 
     # TODO: add logic for max items per request
     # TODO: add multi-threading for faster requests
-    response = http.request_get(uri.path + '/0/' + 2.to_s, header)
-    # response = http.request_get(uri.path + '/0/' + max_items.to_s, header)
+    # response = http.request_get(uri.path + '/0/' + 2.to_s, header)
+    response = http.request_get(uri.path + '/0/' + max_items.to_s, header)
 
     body = response.body
     result = JSON.parse(body)
@@ -106,6 +107,7 @@ class IdeaScaleGetter
       # add all information of matching campaign to idea
       campaign = @campaigns.find { |h| h['cam_id'] == idea_new['idea_campaignId'] }
       idea_new = idea_new.merge(campaign)
+      idea_new['fbtype'] = 'idea'
       ideas_new << idea_new
     }
 
