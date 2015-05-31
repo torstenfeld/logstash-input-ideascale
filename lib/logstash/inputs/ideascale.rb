@@ -2,12 +2,7 @@
 # require File.absolute_path(File.join(File.dirname(__FILE__), '../../../spec/inputs/ideascale_spec'))
 require 'logstash/inputs/base'
 require 'logstash/namespace'
-# require File.absolute_path('../../ideascale/ideascalegetter')
-require File.absolute_path(File.join(File.dirname(__FILE__), '../../ideascale/ideascalegetter'))
-require 'stud/interval'
-# noinspection RubyResolve
-require 'net/http'
-require 'socket' # for Socket.gethostname
+
 
 # Collects ideas for a specific community from IdeaScale via RestAPI
 
@@ -21,7 +16,7 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
   config :baseurl, :validate => :string, :required => true
 
   # types of feedbacks to be fetched ['ideas', 'comments', 'votes']
-  config :fbtypes, :validate => :array, :default => ['ideas']
+  config :fbtypes, :validate => ['ideas', 'comments', 'votes'], :default => ['ideas']
 
   # api token which is used for authentication
   config :apitoken, :validate => :string, :required => true
@@ -34,6 +29,11 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
 
   public
   def register
+    require File.absolute_path(File.join(File.dirname(__FILE__), '../../ideascale/ideascalegetter'))
+    require 'stud/interval'
+    # noinspection RubyResolve
+    require 'net/http'
+    require 'socket' # for Socket.gethostname
     @host = Socket.gethostname
   end # def register
 
@@ -42,7 +42,7 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
     Stud.interval(@interval) do
       is = IdeaScaleGetter.new(@baseurl, @apitoken)
       is.run
-      ideas = is.instance_variable_get(:@ideas)
+      ideas = is.ideas
       ideas.each { |idea|
         event = LogStash::Event.new(idea)
         decorate(event)
