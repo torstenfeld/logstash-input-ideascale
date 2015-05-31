@@ -39,12 +39,16 @@ class LogStash::Inputs::Ideascale < LogStash::Inputs::Base
 
   public
   def run(queue)
+    is = IdeaScaleGetter.new(@baseurl, @apitoken)
     Stud.interval(@interval) do
-      is = IdeaScaleGetter.new(@baseurl, @apitoken)
       is.run
-      ideas = is.ideas
-      ideas.each { |idea|
+      is.ideas.each { |idea|
         event = LogStash::Event.new(idea)
+        decorate(event)
+        queue << event
+      }
+      is.comments.each { |comment|
+        event = LogStash::Event.new(comment)
         decorate(event)
         queue << event
       }
