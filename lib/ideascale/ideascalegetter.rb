@@ -9,7 +9,7 @@ require 'json'
 class IdeaScaleGetter
   attr_reader :campaigns
   attr_reader :ideas
-  
+
   def initialize(baseurl, token)
     @baseurl = baseurl
     @token = token
@@ -108,6 +108,7 @@ class IdeaScaleGetter
       campaign = @campaigns.find { |h| h['cam_id'] == idea_new['idea_campaignId'] }
       idea_new = idea_new.merge(campaign)
       idea_new['fbtype'] = 'idea'
+      idea_new['id'] = idea_new['idea_id']
       ideas_new << idea_new
     }
 
